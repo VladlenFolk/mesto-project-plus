@@ -2,7 +2,7 @@ export const STATUS_NOT_FOUND = 404;
 export const STATUS_BAD_REQUEST = 400;
 export const STATUS_SERVER_ERROR = 500;
 
-export const MSG_ERROR_GENERIC = 'Произошла ошибка';
+export const MSG_ERROR_GENERIC = 'На сервере произошла ошибка';
 export const MSG_ERROR_INVALID_DATA = 'Переданы некорректные данные при создании карточки';
 export const MSG_ERROR_INVALID_CARD_ID = 'Неверный формат ID карточки';
 export const MSG_CARD_NOT_FOUND = 'Карточка с указанным _id не найдена';

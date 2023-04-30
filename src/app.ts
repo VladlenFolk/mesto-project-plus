@@ -4,11 +4,11 @@ import usersRouter from './routes/uesrs';
 import cardsRouter from './routes/cards';
 import { IRequestCustom } from './interfaces/request';
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, SERVER = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+mongoose.connect(SERVER);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const reqCustom = req as IRequestCustom;
