@@ -31,7 +31,7 @@ export const getUser = (req: Request, res: Response) => User.findById(req.params
 export const createUser = (req: Request, res: Response) => {
   const { name, about, avatar } = req.body;
   return User.create({ name, about, avatar })
-    .then((user) => res.json(user))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === VALIDATION_ERROR) {
         return res.status(STATUS_BAD_REQUEST).send({
