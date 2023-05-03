@@ -11,7 +11,7 @@ import NotFoundError from '../errors/not-found-err';
 import ForbiddenError from '../errors/forbidden-err';
 
 export const getCards = (_req: Request, res: Response, next: NextFunction) => Card.find({})
-  .populate('owner')
+  .populate(['owner', 'likes'])
   .then((card) => res.send(card))
   .catch(next);
 
@@ -20,7 +20,7 @@ export const createCard = (req: IRequestCustom, res: Response, next: NextFunctio
   const _id = req.user?._id;
 
   Card.create({ name, link, owner: _id })
-    .then((card) => res.send(card))
+    .then((card) => res.status(201).send(card))
     .catch((err) => {
       handleOperationalErrors(err, next);
     });

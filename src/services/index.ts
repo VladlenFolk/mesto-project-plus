@@ -15,9 +15,9 @@ export const emailValidator = {
 export const handleOperationalErrors = (err: IError, next: NextFunction) => {
   if (err.code === 11000) {
     next(new ConflictError(MSG_ERROR_USER_ALREADY_EXIST));
-  }
-  if (err.name === VALIDATION_ERROR || err.name === CAST_ERROR) {
+  } else if (err.name === VALIDATION_ERROR || err.name === CAST_ERROR) {
     next(new BadRequestError(MSG_ERROR_INVALID_DATA));
+  } else {
+    next(err);
   }
-  next(err);
 };

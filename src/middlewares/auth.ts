@@ -8,14 +8,16 @@ import { MSG_ERROR_UNAUTHORIZED } from '../services/constants';
 export default (req: IRequestCustom, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw new UnauthorizedError(MSG_ERROR_UNAUTHORIZED);
+    next(new UnauthorizedError(MSG_ERROR_UNAUTHORIZED));
+    return;
   }
   const token = authorization.replace('Bearer ', '');
   let payload: jwt.JwtPayload;
   try {
     payload = jwt.verify(token, 'super-strong-secret') as jwt.JwtPayload;
   } catch (err) {
-    throw new UnauthorizedError(MSG_ERROR_UNAUTHORIZED);
+    next(new UnauthorizedError(MSG_ERROR_UNAUTHORIZED));
+    return;
   }
 
   req.user = { _id: payload._id };

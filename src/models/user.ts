@@ -1,13 +1,9 @@
-import bcrypt from 'bcrypt';
 import { Schema, model } from 'mongoose';
-import {
-  defaultUserAbout, defaultUserAvatar, defaultUserName, MSG_ERROR_USER_PASS_WRONG,
-} from '../services/constants';
-import { IUser, UserModel } from '../services/interfaces';
+import { defaultUserAbout, defaultUserAvatar, defaultUserName } from '../services/constants';
+import { IUser } from '../services/interfaces';
 import { emailValidator } from '../services/index';
-import UnauthorizedError from '../errors/unauthorized-err';
 
-const userSchema = new Schema<IUser, UserModel>({
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     default: defaultUserName,
@@ -44,20 +40,4 @@ const userSchema = new Schema<IUser, UserModel>({
   },
 });
 
-userSchema.static('findUserByCredentials', function findUserByCredentials(email: string, password: string) {
-  return this.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
-      }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            return Promise.reject(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
-          }
-          return user;
-        });
-    });
-});
-
-export default model<IUser, UserModel>('user', userSchema);
+export default model('user', userSchema);

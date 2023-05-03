@@ -1,35 +1,42 @@
 import { Joi, celebrate } from 'celebrate';
+import {
+  regexUrlSchema, regexDescribeSchema, regexEmailSchema, regexUserSchema, regexIdSchema,
+} from './constants';
 
-const loginSchema = Joi.object().keys({
-  email: Joi.string().email(),
+const signinSchema = Joi.object().keys({
+  email: regexEmailSchema,
   password: Joi.string().required().min(8),
 });
-const signupSchema = Joi.object().keys({
-  email: Joi.string().email(),
+
+const singnupSchema = Joi.object().keys({
+  name: regexUserSchema,
+  about: regexUserSchema,
+  avatar: Joi.string().uri(),
+  email: regexEmailSchema,
   password: Joi.string().required().min(8),
 });
 
 const userByIdSchema = Joi.object().keys({
-  userId: Joi.string().alphanum().length(24),
+  userId: regexIdSchema,
 });
 const updateUserSchema = Joi.object().keys({
-  name: Joi.string().required().min(2).max(30),
+  name: regexDescribeSchema,
   about: Joi.string().required().min(2).max(200),
 });
 const updateAvatarSchema = Joi.object().keys({
-  avatar: Joi.string().required().uri(),
+  avatar: regexUrlSchema,
 });
 
 const createCardSchema = Joi.object().keys({
-  name: Joi.string().required().min(2).max(30),
-  link: Joi.string().required().uri(),
+  name: regexDescribeSchema,
+  link: regexUrlSchema,
 });
 const idCardSchema = Joi.object().keys({
-  cardId: Joi.string().alphanum().length(24),
+  userId: regexIdSchema,
 });
 
-export const loginValidate = celebrate({ body: loginSchema });
-export const signupValidate = celebrate({ body: signupSchema });
+export const signinValidate = celebrate({ body: signinSchema });
+export const signupValidate = celebrate({ body: singnupSchema });
 
 export const getUserByIdValidate = celebrate({ params: userByIdSchema });
 export const updateUserValidate = celebrate({ body: updateUserSchema });

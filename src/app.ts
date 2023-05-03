@@ -1,13 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { errors } from 'celebrate';
-import usersRouter from './routes/uesrs';
-import cardsRouter from './routes/cards';
-import { login, createUser } from './controllers/users';
+import appRouter from './routes/index';
+import authRouter from './routes/auth';
 import auth from './middlewares/auth';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import errorMiddleware from './middlewares/errors';
-import { loginValidate, signupValidate } from './services/validation';
 
 const app = express();
 app.use(express.json());
@@ -18,13 +16,11 @@ mongoose.connect(SERVER);
 
 app.use(requestLogger);
 
-app.post('/signin', loginValidate, login);
-app.post('/signup', signupValidate, createUser);
+app.use('/', authRouter);
 
 app.use(auth);
 
-app.use('/cards', cardsRouter);
-app.use('/users', usersRouter);
+app.use('/', appRouter);
 
 app.use(errorLogger);
 
