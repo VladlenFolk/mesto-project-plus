@@ -15,4 +15,5 @@ router.get('/me', getCurrentUser);
 router.get('/:userId', getUserByIdValidate, getUserById);
 router.patch('/me', updateUserValidate, updateUser);
 router.patch('/me/avatar', updateAvatarValidate, updateAvatar);
+
 export default router;

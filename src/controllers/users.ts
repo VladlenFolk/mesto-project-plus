@@ -5,24 +5,38 @@ import { IRequestCustom } from '../services/interfaces';
 import User from '../models/user';
 import {
   MSG_ERROR_USER_NOT_FOUND,
+  MSG_ERROR_USER_PASS_WRONG,
 } from '../services/constants';
 import { handleOperationalErrors } from '../services/index';
 import NotFoundError from '../errors/not-found-err';
+import UnauthorizedError from '../errors/unauthorized-err';
 
+/* eslint no-param-reassign: "off" */
 export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  return User.findOne({ email })
+    .select('+password')
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
-        expiresIn: '7d',
-      });
-      res
-        .cookie('jwt', token, {
+      if (!user) {
+        next(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
+        return;
+      }
+      bcrypt.compare(password, user.password).then((correct) => {
+        if (!correct) {
+          next(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
+          return;
+        }
+        const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+          expiresIn: '7d',
+        });
+        user.password = '';
+        res.cookie('jwt', token, {
           maxAge: 7 * 24 * 60 * 60 * 1000,
           httpOnly: true,
           sameSite: 'strict',
         })
-        .send({ token });
+          .send({ token });
+      });
     })
     .catch(next);
 };
@@ -79,7 +93,14 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
       email,
       password: hash,
     }))
-    .then((user) => res.send(user))
+    .then(() => {
+      res.json({
+        name,
+        about,
+        avatar,
+        email,
+      });
+    })
     .catch((err) => {
       handleOperationalErrors(err, next);
     });
@@ -126,5 +147,7 @@ export const updateAvatar = (
       }
       return res.send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      handleOperationalErrors(err, next);
+    });
 };

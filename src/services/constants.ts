@@ -1,3 +1,5 @@
+import { Joi } from 'celebrate';
+
 export const STATUS_BAD_REQUEST = 400;
 export const STATUS_UNAUTHORIZED_ERROR = 401;
 export const STATUS_FORBIDDEN = 403;
@@ -24,4 +26,10 @@ export const defaultUserName = 'Жак-Ив Кусто';
 export const defaultUserAbout = 'Исследователь';
 export const defaultUserAvatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png';
 
-export const MSG_ERROR_USER_PASS_WRONG = 'Неправильные почта или пароль';
+export const MSG_ERROR_USER_PASS_WRONG = 'Неправильный логин или пароль';
+
+export const regexUrlSchema = Joi.string().required().uri();
+export const regexDescribeSchema = Joi.string().required().min(2).max(30);
+export const regexEmailSchema = Joi.string().email();
+export const regexUserSchema = Joi.string().min(3).max(30);
+export const regexIdSchema = Joi.string().required().hex().length(24);
