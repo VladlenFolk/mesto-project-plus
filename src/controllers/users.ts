@@ -1,50 +1,95 @@
-import { Request, Response } from 'express';
-import { IRequestCustom } from '../interfaces/request';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
+import { IRequestCustom } from '../services/interfaces';
 import User from '../models/user';
 import {
-  STATUS_NOT_FOUND,
-  STATUS_BAD_REQUEST,
-  STATUS_SERVER_ERROR,
-  MSG_ERROR_GENERIC,
-  MSG_ERROR_INVALID_USER_DATA,
   MSG_ERROR_USER_NOT_FOUND,
-  MSG_ERROR_INVALID_AVATAR_DATA,
-  VALIDATION_ERROR,
-  MSG_ERROR_INVALID_CREATE_USER_DATA,
-} from '../constants/index';
+} from '../services/constants';
+import { handleOperationalErrors } from '../services/index';
+import NotFoundError from '../errors/not-found-err';
 
-export const getUsers = (_req: Request, res: Response) => User.find({})
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+        expiresIn: '7d',
+      });
+      res
+        .cookie('jwt', token, {
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          httpOnly: true,
+          sameSite: 'strict',
+        })
+        .send({ token });
+    })
+    .catch(next);
+};
+
+export const getUsers = (_req: Request, res: Response, next: NextFunction) => User.find({})
   .then((user) => res.send(user))
-  .catch(() => res.status(STATUS_SERVER_ERROR).send({ message: MSG_ERROR_GENERIC }));
+  .catch(next);
 
-export const getUser = (req: Request, res: Response) => User.findById(req.params.userId)
-  .then((user) => {
-    if (!user) {
-      return res
-        .status(STATUS_NOT_FOUND)
-        .send({ message: MSG_ERROR_USER_NOT_FOUND });
-    }
-    return res.send(user);
-  })
-  .catch(() => res.status(STATUS_SERVER_ERROR).send({ message: MSG_ERROR_GENERIC }));
-
-export const createUser = (req: Request, res: Response) => {
-  const { name, about, avatar } = req.body;
-  return User.create({ name, about, avatar })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === VALIDATION_ERROR) {
-        return res.status(STATUS_BAD_REQUEST).send({
-          message: MSG_ERROR_INVALID_CREATE_USER_DATA,
-        });
+export const getUserById = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
       }
-      return res
-        .status(STATUS_SERVER_ERROR)
-        .send({ message: MSG_ERROR_GENERIC });
+      return res.send(user);
+    })
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
 
-export const updateUser = (req: IRequestCustom, res: Response) => {
+export const getCurrentUser = (
+  req: IRequestCustom,
+  res: Response,
+  next: NextFunction,
+) => {
+  const _id = req.user?._id;
+  return User.findById(_id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      handleOperationalErrors(err, next);
+    });
+};
+
+export const createUser = (req: Request, res: Response, next: NextFunction) => {
+  const {
+    name, about, avatar, email,
+  } = req.body;
+  bcrypt
+    .hash(req.body.password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      handleOperationalErrors(err, next);
+    });
+};
+
+export const updateUser = (
+  req: IRequestCustom,
+  res: Response,
+  next: NextFunction,
+) => {
   const { name, about } = req.body;
   const _id = req.user?._id;
   return User.findByIdAndUpdate(
@@ -54,29 +99,20 @@ export const updateUser = (req: IRequestCustom, res: Response) => {
   )
     .then((user) => {
       if (!user) {
-        return res
-          .status(STATUS_NOT_FOUND)
-          .send({ message: MSG_ERROR_USER_NOT_FOUND });
-      } if (!name || !about) {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: MSG_ERROR_INVALID_USER_DATA });
+        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
       }
       return res.send(user);
     })
-    .catch((error) => {
-      if (error.name === VALIDATION_ERROR) {
-        return res.status(STATUS_BAD_REQUEST).send({
-          message: MSG_ERROR_INVALID_USER_DATA,
-        });
-      }
-      return res
-        .status(STATUS_SERVER_ERROR)
-        .send({ message: MSG_ERROR_GENERIC });
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
 
-export const updateAvatar = (req: IRequestCustom, res: Response) => {
+export const updateAvatar = (
+  req: IRequestCustom,
+  res: Response,
+  next: NextFunction,
+) => {
   const { avatar } = req.body;
   const _id = req.user?._id;
   return User.findByIdAndUpdate(
@@ -86,24 +122,9 @@ export const updateAvatar = (req: IRequestCustom, res: Response) => {
   )
     .then((user) => {
       if (!user) {
-        return res
-          .status(STATUS_NOT_FOUND)
-          .send({ message: MSG_ERROR_USER_NOT_FOUND });
-      } if (!avatar) {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: MSG_ERROR_INVALID_AVATAR_DATA });
+        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
       }
       return res.send(user);
     })
-    .catch((err) => {
-      if (err.name === VALIDATION_ERROR) {
-        return res.status(STATUS_BAD_REQUEST).send({
-          message: MSG_ERROR_INVALID_AVATAR_DATA,
-        });
-      }
-      return res
-        .status(STATUS_SERVER_ERROR)
-        .send({ message: MSG_ERROR_GENERIC });
-    });
+    .catch(next);
 };

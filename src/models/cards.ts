@@ -18,6 +18,12 @@ const cardSchema = new Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator(v: string) {
+        return /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/.test(v);
+      },
+      message: 'URL не соответствует формату',
+    },
   },
   owner: {
     type: Schema.Types.ObjectId,
