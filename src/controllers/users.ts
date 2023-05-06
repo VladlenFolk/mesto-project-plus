@@ -35,7 +35,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
           httpOnly: true,
           sameSite: 'strict',
         })
-          .send({ token });
+          .send(user);
       });
     })
     .catch(next);
@@ -94,7 +94,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
       password: hash,
     }))
     .then(() => {
-      res.json({
+      res.status(201).send({
         name,
         about,
         avatar,
