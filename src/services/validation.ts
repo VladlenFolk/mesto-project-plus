@@ -1,6 +1,6 @@
 import { Joi, celebrate } from 'celebrate';
 import {
-  regexUrlSchema, regexDescribeSchema, regexEmailSchema, regexUserSchema, regexIdSchema,
+  regexUrlSchema, regexDescribeSchema, regexEmailSchema, regexUserSchema, regexIdSchema, urlRegex,
 } from './constants';
 
 const signinSchema = Joi.object().keys({
@@ -11,7 +11,7 @@ const signinSchema = Joi.object().keys({
 const singnupSchema = Joi.object().keys({
   name: regexUserSchema,
   about: regexUserSchema,
-  avatar: Joi.string().uri(),
+  avatar: Joi.string().pattern(urlRegex),
   email: regexEmailSchema,
   password: Joi.string().required().min(8),
 });

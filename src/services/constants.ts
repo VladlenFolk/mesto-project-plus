@@ -10,6 +10,7 @@ export const STATUS_SERVER_ERROR = 500;
 export const MSG_ERROR_INVALID_DATA = 'Переданы некорректные данные';
 export const MSG_ERROR_GENERIC = 'На сервере произошла ошибка';
 export const MSG_ERROR_UNAUTHORIZED = 'Требуется авторизация';
+export const MSG_ERROR_NOT_FOUND = 'Требуется авторизация';
 
 export const MSG_CARD_NOT_FOUND = 'Карточка не найдена';
 export const MSG_CARD_DELETED = 'Карточка успешно удалена';
@@ -28,7 +29,8 @@ export const defaultUserAvatar = 'https://pictures.s3.yandex.net/resources/jacqu
 
 export const MSG_ERROR_USER_PASS_WRONG = 'Неправильный логин или пароль';
 
-export const regexUrlSchema = Joi.string().required().uri();
+export const urlRegex = /^(http|https):\/\/([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
+export const regexUrlSchema = Joi.string().required().pattern(urlRegex);
 export const regexDescribeSchema = Joi.string().required().min(2).max(30);
 export const regexEmailSchema = Joi.string().email();
 export const regexUserSchema = Joi.string().min(3).max(30);
