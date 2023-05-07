@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { errors } from 'celebrate';
-import express, { Request, Response, NextFunction } from 'express';
-import NotFoundError from './errors/not-found-err';
+import express from 'express';
 import appRouter from './routes/index';
 import authRouter from './routes/auth';
 import auth from './middlewares/auth';
@@ -20,10 +19,6 @@ app.use(requestLogger);
 app.use('/', authRouter);
 
 app.use('/', auth, appRouter);
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-  next(new NotFoundError('Маршрут не найден'));
-});
 
 app.use(errorLogger);
 
